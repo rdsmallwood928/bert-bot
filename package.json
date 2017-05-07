@@ -10,8 +10,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "discord.js": "^11.1.0",
     "discordie": "^0.11.0",
-    "winston": "^2.3.1"
+    "node-opus": "^0.2.6",
+    "winston": "^2.3.1",
+    "ytdl-core": "^0.13.3"
   },
   "devDependencies": {
     "jslint": "^0.10.3"
