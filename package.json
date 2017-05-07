@@ -1,0 +1,19 @@
+{
+  "name": "bert-bot",
+  "version": "1.0.0",
+  "description": "It",
+  "main": "src/app.js",
+  "scripts": {
+    "test": "test",
+    "serve": "node src/app.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "discordie": "^0.11.0",
+    "winston": "^2.3.1"
+  },
+  "devDependencies": {
+    "jslint": "^0.10.3"
+  }
+}
