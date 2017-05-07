@@ -1,1 +1,1 @@
-To run bert-bot, type npm run serve
+To run bert-bot, type `npm run serve -- -t <token-value-here>`
