@@ -1,10 +1,17 @@
 const Discordie = require('discordie');
 const logger = require('winston');
+const commander = require('commander');
 
 const bertBot = new Discordie();
 
+commander
+  .option('-t, --token [value]', 'You will need a bert-bot token to run me on discord', 'No-token!')
+  .parse(process.argv);
+
+logger.info(commander.token);
+
 bertBot.connect({
-  token: 'MzEwNTczNjc3NTkyNzA3MDcy.C-_7zA.y_0TVy2vTCzjQYcglMeXtyR9jrg'
+  token: commander.token
 });
 
 bertBot.Dispatcher.on(Discordie.Events.GATEWAY_READY, () => {
