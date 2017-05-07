@@ -35,16 +35,19 @@ bertBot.on('ready', () => {
   const music = new Music(textChannel, voiceChannel, bertBot);
 
   bertBot.on('message', (message) => {
-    logger.info('Message received');
-    let messageText = message.content.toLowerCase();
-    if(message.content.substring(0, 2) === '<@') {
-      messageText = message.content.substr(message.content.indexOf(' ') + 1);
+    logger.info('Message received, ' + message.content);
+    if(message.isMentioned(bertBot.user)) {
+      const messageText = message.content.substr(message.content.indexOf(' ') + 1).toLowerCase();
       if(messageText === 'hi') {
         message.channel.sendMessage('Sup');
-      } else if(messageText.toLowerCase().includes('music')) {
-        music.addToQueue(message);
+      } else if(messageText.includes('music')) {
+        music.addToQueue('dMK_npDG12Q', message);
+      } else if(messageText.includes('shut up')) {
+        music.stop(message);
+      } else if(messageText.includes('where are ')) {
+        message.reply('They\'re UNDER THE GROUND!');
       } else {
-        message.channel.sendMessage('I don\'t understand, please speak english ' + message.author.username);
+        message.reply('I don\'t understand, please speak english ' + message.author.username);
       }
     }
   });

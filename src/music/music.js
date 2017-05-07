@@ -21,8 +21,10 @@ class MusicRequestHandler {
     }).catch(logger.error);
   }
 
-  addToQueue(message, mute = false) {
-    const videoId = 'dMK_npDG12Q';
+  addToQueue(videoId, message, mute = false) {
+    if(this.stopped) {
+      this.stopped = false;
+    }
     ytdl.getInfo('https://www.youtube.com/watch?v=' + videoId, (error, info) => {
       if(error) {
         message.reply('The requested video (' + videoId + ') does not exist or cannot be played.');
@@ -41,6 +43,17 @@ class MusicRequestHandler {
 
   isQueueEmpty() {
     return this.queue.length === 0;
+  }
+
+  stop(message) {
+    if(this.stopped) {
+      message.reply('I already did, jerk! Also Lorde is a freaking American treasure and you should appreciate her.');
+    } else {
+      if(this.voiceHandler !== null) {
+        this.voiceHandler.end();
+      }
+      message.reply('Fine, geez...Sorry for appreciating the arts');
+    }
   }
 
   playNextSong() {
