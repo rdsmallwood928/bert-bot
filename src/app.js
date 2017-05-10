@@ -8,26 +8,34 @@ const bertBot = new Discord.Client({
 });
 
 commander
-  .option('-t, --token [value]', 'You will need a bert-bot token to run me on discord', 'No-token!')
+  .option('-t, --token [value]', 'You will need a bert-bot token to run me on discord')
   .option('-v, --voiceChannel [value]', 'A voice channel for the bot to speak in')
   .option('-s, --server [value]', 'A discord server to connect to')
   .option('-x, --textChannel [value]', 'A discord text channel to chat in')
   .parse(process.argv);
 
-logger.info(commander.token);
+const voiceChannelName = process.env.VOICE_CHANNEL || commander.voiceChannel;
+const token = process.env.TOKEN || commander.token;
+const serverName = process.env.SERVER || commander.server;
+const textChannelName = process.env.TEXT_CHANNEL || commander.textChannel;
+
+logger.info('TOKEN ' + token);
+logger.info('Voice channel: ' + voiceChannelName);
+logger.info('Server name: ' + serverName);
+logger.info('textChannelName: ' + textChannelName);
 
 bertBot.on('ready', () => {
-  const server =  bertBot.guilds.find('name', commander.server);
+  const server =  bertBot.guilds.find('name', serverName);
   if(server === null) {
     throw 'Couldn\'t find server ' + commander.server;
   }
 
-  const voiceChannel = server.channels.find(channel => channel.name === commander.voiceChannel && channel.type === 'voice');
+  const voiceChannel = server.channels.find(channel => channel.name === voiceChannelName && channel.type === 'voice');
   if(voiceChannel === null) {
     throw 'Couldn\'t find voice channel ' + commander.voiceChannel + ' in server ' + commander.server;
   }
 
-  const textChannel = server.channels.find(channel => channel.name === commander.textChannel && channel.type === 'text');
+  const textChannel = server.channels.find(channel => channel.name === textChannelName && channel.type === 'text');
   if(textChannel === null) {
     throw 'Couldn\'t find text channel ' + commander.textChannel + ' in server ' + commander.server;
   }
@@ -54,4 +62,8 @@ bertBot.on('ready', () => {
   logger.info('Connected!');
 });
 
-bertBot.login(commander.token);
+bertBot.login(token).then(() => {
+  logger.info('Login success!');
+}).catch((error) => {
+  logger.error('ERROR! ' + error);
+});
