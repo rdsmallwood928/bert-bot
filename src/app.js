@@ -2,6 +2,7 @@ const Discord = require('discord.js');
 const logger = require('winston');
 const commander = require('commander');
 const Music = require('./music/music');
+const Pizza = require('./pizza/pizza');
 const bertBot = new Discord.Client({
     autoreconnect: true,
     max_message_cache: 0
@@ -18,11 +19,13 @@ const voiceChannelName = process.env.VOICE_CHANNEL || commander.voiceChannel;
 const token = process.env.TOKEN || commander.token;
 const serverName = process.env.SERVER || commander.server;
 const textChannelName = process.env.TEXT_CHANNEL || commander.textChannel;
+const pizza = process.env.PIZZA || commander.pizza;
 
 logger.info('TOKEN ' + token);
 logger.info('Voice channel: ' + voiceChannelName);
 logger.info('Server name: ' + serverName);
 logger.info('textChannelName: ' + textChannelName);
+logger.info('pizza: ' + pizza);
 
 bertBot.on('ready', () => {
   const server =  bertBot.guilds.find('name', serverName);
@@ -41,6 +44,7 @@ bertBot.on('ready', () => {
   }
 
   const music = new Music(textChannel, voiceChannel, bertBot);
+	const pizza = new Pizza();
 
   bertBot.on('message', (message) => {
     logger.info('Message received, ' + message.content);
@@ -54,6 +58,8 @@ bertBot.on('ready', () => {
         music.stop(message);
       } else if(messageText.includes('where are ')) {
         message.reply('They\'re UNDER THE GROUND!');
+      } else if(messageText.includes('pizza')) {
+        pizza.getLocations();
       } else {
         message.reply('I don\'t understand, please speak english ' + message.author.username);
       }
