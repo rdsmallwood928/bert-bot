@@ -13,6 +13,7 @@ commander
   .option('-v, --voiceChannel [value]', 'A voice channel for the bot to speak in')
   .option('-s, --server [value]', 'A discord server to connect to')
   .option('-x, --textChannel [value]', 'A discord text channel to chat in')
+  .option('-y, --youtubeapi [value]', 'Youtube api key for search')
   .parse(process.argv);
 
 const voiceChannelName = process.env.VOICE_CHANNEL || commander.voiceChannel;
@@ -20,12 +21,14 @@ const token = process.env.TOKEN || commander.token;
 const serverName = process.env.SERVER || commander.server;
 const textChannelName = process.env.TEXT_CHANNEL || commander.textChannel;
 const pizza = process.env.PIZZA || commander.pizza;
+const youtubeApi = process.env.YOUTUBE || commander.youtubeApi;
 
 logger.info('TOKEN ' + token);
 logger.info('Voice channel: ' + voiceChannelName);
 logger.info('Server name: ' + serverName);
 logger.info('textChannelName: ' + textChannelName);
 logger.info('pizza: ' + pizza);
+logger.info('youtube: ' + youtubeApi);
 
 bertBot.on('ready', () => {
   const server =  bertBot.guilds.find('name', serverName);
@@ -43,7 +46,7 @@ bertBot.on('ready', () => {
     throw 'Couldn\'t find text channel ' + commander.textChannel + ' in server ' + commander.server;
   }
 
-  const music = new Music(textChannel, voiceChannel, bertBot);
+  const music = new Music(textChannel, voiceChannel, bertBot, youtubeApi);
 	const pizza = new Pizza();
 
   bertBot.on('message', (message) => {
@@ -56,7 +59,9 @@ bertBot.on('ready', () => {
         music.addToQueue('dMK_npDG12Q', message);
       } else if(messageText.includes('shut up')) {
         music.stop(message);
-      } else if(messageText.includes('where are ')) {
+      } else if(messageText.includes('request')) {
+        music.searchVideo(message, messageText.split(' ').slice(2));
+      }else if(messageText.includes('where are ')) {
         message.reply('They\'re UNDER THE GROUND!');
       } else if(messageText.includes('pizza')) {
         pizza.getLocations();
