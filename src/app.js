@@ -21,7 +21,7 @@ const serverName = process.env.SERVER || commander.server;
 const textChannelName = process.env.TEXT_CHANNEL || commander.textChannel;
 const pizza = process.env.PIZZA || commander.pizza;
 
-logger.info('TOKEN ' + token);
+logger.info('Token: ' + token);
 logger.info('Voice channel: ' + voiceChannelName);
 logger.info('Server name: ' + serverName);
 logger.info('textChannelName: ' + textChannelName);
@@ -59,7 +59,7 @@ bertBot.on('ready', () => {
       } else if(messageText.includes('where are ')) {
         message.reply('They\'re UNDER THE GROUND!');
       } else if(messageText.includes('pizza')) {
-        pizza.getLocations();
+        pizza.startPizzaOrder(message);
       } else {
         message.reply('I don\'t understand, please speak english ' + message.author.username);
       }

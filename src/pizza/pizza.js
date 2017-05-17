@@ -5,6 +5,11 @@ class PizzaService {
 
   constructor() {}
 
+  startPizzaOrder(message) {
+    logger.info(JSON.stringify(message));
+    message.reply('Craving some \'za eh?  No prob, first I\'ll need your zip to look up nearby stores');
+  }
+
   getLocations() {
     pizza.Util.findNearbyStores(
         '80122',

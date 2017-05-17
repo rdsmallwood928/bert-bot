@@ -16,6 +16,7 @@
     "erlpack": "github:hammerandchisel/erlpack",
     "libsodium-wrappers": "^0.5.1",
     "node-opus": "^0.2.6",
+    "opusscript": "0.0.3",
     "pizzapi": "0.0.8",
     "sodium": "^2.0.1",
     "uws": "^0.14.5",
