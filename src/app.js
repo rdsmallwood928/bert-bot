@@ -47,7 +47,7 @@ bertBot.on('ready', () => {
 	const pizza = new Pizza();
 
   bertBot.on('message', (message) => {
-    logger.info('Message received, ' + message.content);
+    logger.info('Message received: ' + message.content);
     if(message.isMentioned(bertBot.user)) {
       const messageText = message.content.substr(message.content.indexOf(' ') + 1).toLowerCase();
       if(messageText === 'hi') {
@@ -63,6 +63,9 @@ bertBot.on('ready', () => {
       } else {
         message.reply('I don\'t understand, please speak english ' + message.author.username);
       }
+    } else {
+      logger.info('Handling message: ' + message.content);
+      pizza.handleMessage(message);
     }
   });
   logger.info('Connected!');
