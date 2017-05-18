@@ -1,10 +1,11 @@
 const ytdl = require('ytdl-core');
 const logger = require('winston');
+const request = require('request');
 
 class MusicRequestHandler {
 
   //It only plays Lorde...seriously
-  constructor(textChannel, voiceChannel, bot) {
+  constructor(textChannel, voiceChannel, bot, ytApiKey) {
     this.queue = [];
     this.stopped = false;
     this.voiceHandler = null;
@@ -15,6 +16,7 @@ class MusicRequestHandler {
     this.textChannel = textChannel;
     this.voiceChannel = voiceChannel;
     this.voiceConnection = null;
+    this.ytApiKey = ytApiKey;
     voiceChannel.join().then((connection) => {
       logger.info('Voice connection established');
       this.voiceConnection = connection;
@@ -43,6 +45,20 @@ class MusicRequestHandler {
 
   isQueueEmpty() {
     return this.queue.length === 0;
+  }
+
+  searchVideo(message, query) {
+
+    request('https://www.googleapis.com/youtube/v3/search?part=id&type=video&q=' + encodeURIComponent(query.toString().replace(',', ' ')) + '&key=' + this.ytApiKey, (err, res, body) => {
+      const json = JSON.parse(body);
+      if('error' in json) {
+        message.reply('Youtube didn\'t like that one bro...' + json.error.errors[0].message + ' - ' + json.error.errors[0].reason);
+      } else if(json.items.length === 0) {
+        message.reply('Man you sure thats a song?  I couldn\'t find it on YouTube');
+      } else {
+        this.addToQueue(json.items[0].id.videoId, message);
+      }
+    });
   }
 
   stop(message) {
