@@ -2,7 +2,7 @@ const Discord = require('discord.js');
 const logger = require('winston');
 const commander = require('commander');
 const Music = require('./music/music');
-const Pizza = require('./pizza/pizza');
+const Pizza = require('./pizza/PizzaService');
 const bertBot = new Discord.Client({
     autoreconnect: true,
     max_message_cache: 0
@@ -13,7 +13,7 @@ commander
   .option('-v, --voiceChannel [value]', 'A voice channel for the bot to speak in')
   .option('-s, --server [value]', 'A discord server to connect to')
   .option('-x, --textChannel [value]', 'A discord text channel to chat in')
-  .option('-y, --youtubeapi [value]', 'Youtube api key for search')
+  .option('-y, --youtubeApi [value]', 'Youtube api key for search')
   .parse(process.argv);
 
 const voiceChannelName = process.env.VOICE_CHANNEL || commander.voiceChannel;
