@@ -23,7 +23,7 @@ const textChannelName = process.env.TEXT_CHANNEL || commander.textChannel;
 const pizza = process.env.PIZZA || commander.pizza;
 const youtubeApi = process.env.YOUTUBE || commander.youtubeApi;
 
-logger.info('TOKEN ' + token);
+logger.info('Token: ' + token);
 logger.info('Voice channel: ' + voiceChannelName);
 logger.info('Server name: ' + serverName);
 logger.info('textChannelName: ' + textChannelName);
@@ -50,7 +50,7 @@ bertBot.on('ready', () => {
 	const pizza = new Pizza();
 
   bertBot.on('message', (message) => {
-    logger.info('Message received, ' + message.content);
+    logger.info('Message received: ' + message.content);
     if(message.isMentioned(bertBot.user)) {
       const messageText = message.content.substr(message.content.indexOf(' ') + 1).toLowerCase();
       if(messageText === 'hi') {
@@ -64,10 +64,13 @@ bertBot.on('ready', () => {
       }else if(messageText.includes('where are ')) {
         message.reply('They\'re UNDER THE GROUND!');
       } else if(messageText.includes('pizza')) {
-        pizza.getLocations();
+        pizza.startPizzaOrder(message);
       } else {
         message.reply('I don\'t understand, please speak english ' + message.author.username);
       }
+    } else {
+      logger.info('Handling message: ' + message.content);
+      pizza.handleMessage(message);
     }
   });
   logger.info('Connected!');
