@@ -33,22 +33,26 @@ class MusicRequestHandler {
   }
 
   playCurrentStream() {
-    const endHandler = () => {
-      this.voiceHandler.removeListener('end', endHandler);
-      this.voiceHandler = null;
-      if(!this.stopped && !this.isQueueEmpty()) {
-        logger.info('Playing next song after stopping');
-        this.queue.splice(0, 1);
-        this.playNextSong();
-      }
-    };
-    const handleConnection = (connection) => {
-      this.voiceHandler = connection.playStream(this.audioStream);
-      this.voiceHandler.on('start', () => {
-        this.voiceHandler.on('end', endHandler);
-      });
-    };
-    this.getVoiceConnection().then(handleConnection);
+    if(!this.isQueueEmpty()) {
+      const endHandler = () => {
+        this.voiceHandler.removeListener('end', endHandler);
+        this.voiceHandler = null;
+        if(!this.stopped && !this.isQueueEmpty()) {
+          this.queue.splice(0, 1);
+          if(!this.isQueueEmpty()) {
+            logger.info('Playing next song after stopping');
+            this.playNextSong();
+          }
+        }
+      };
+      const handleConnection = (connection) => {
+        this.voiceHandler = connection.playStream(this.audioStream);
+        this.voiceHandler.on('start', () => {
+          this.voiceHandler.on('end', endHandler);
+        });
+      };
+      this.getVoiceConnection().then(handleConnection);
+    }
   }
 
   addToQueue(videoId, message, mute = false) {
