@@ -10,7 +10,6 @@
     "sourceType": "module"
   },
   "rules": {
-
     // formatting, spaces, operators
     "quotes": [2, "single"],
     "semi": [2, "always"],

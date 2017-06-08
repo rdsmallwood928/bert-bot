@@ -61,10 +61,14 @@ bertBot.on('ready', () => {
         music.stop(message);
       } else if(messageText.includes('request')) {
         music.searchVideo(message, messageText.split(' ').slice(2));
-      }else if(messageText.includes('where are ')) {
+      } else if(messageText.includes('where are ')) {
         message.reply('They\'re UNDER THE GROUND!');
       } else if(messageText.includes('pizza')) {
         pizza.startPizzaOrder(message);
+      } else if(messageText.includes('playlist')) {
+        music.sendPlaylist(message);
+      } else if(messageText.includes('mad props')) {
+        music.giveProps(message);
       } else {
         message.reply('I don\'t understand, please speak english ' + message.author.username);
       }

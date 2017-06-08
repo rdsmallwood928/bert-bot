@@ -4,9 +4,9 @@ const request = require('request');
 
 class MusicRequestHandler {
 
-  //It only plays Lorde...seriously
   constructor(textChannel, voiceChannel, bot, ytApiKey) {
     this.queue = [];
+    this.users = {};
     this.stopped = false;
     this.voiceHandler = null;
     this.bot = bot;
@@ -27,12 +27,20 @@ class MusicRequestHandler {
     if(this.stopped) {
       this.stopped = false;
     }
+    this.addUser(message.author.id);
     ytdl.getInfo('https://www.youtube.com/watch?v=' + videoId, (error, info) => {
       if(error) {
         message.reply('The requested video (' + videoId + ') does not exist or cannot be played.');
         logger.info('Error (' + videoId + '): ' + error);
       } else {
-        this.queue.push({title: info['title'], id: videoId, user: message.author.username});
+        this.queue.push(
+          {
+            title: info['title'],
+            id: videoId,
+            user: message.author.username,
+            userId: message.author.id
+          }
+        );
         if (!mute) {
           message.reply('"' + info['title'] + '" has been added to the queue.');
         }
@@ -43,12 +51,46 @@ class MusicRequestHandler {
     });
   }
 
+  addUser(userId) {
+    if(!this.users[userId]) {
+      this.users[userId] = 0;
+    }
+  }
+
+  giveProps(message) {
+    for(const [id, DJ] of message.mentions.members) {
+      if(id !== this.bot.user.id) {
+        this.addUser(id);
+        this.incrementDJScore(id, message);
+      }
+    }
+  }
+
+  incrementDJScore(DJ, message) {
+    if(DJ !== message.author.id) {
+      this.users[DJ]++;
+      message.channel.sendMessage('Nice <@' + DJ + '> you got some mad props.'
+      + '  Your DJ score is now ' + this.users[DJ] + '.  https://giphy.com/gifs/rick-and-morty-Zlbrd0nbung9a');
+    } else {
+      message.reply('Boooo!  Not cool! https://giphy.com/gifs/not-cool-ofA0Y8liucq4w');
+    }
+  }
+
+  decrementDJScore(listener, DJ, message) {
+    if(listener !== DJ) {
+      this.users[DJ]--;
+      message.channel.sendMessage('Ouch <@' + DJ + '>, looks like wasn\'t a popular pick. '
+        + 'Better up your DJ game.  Your current DJ score is ' + this.users[DJ]);
+    } else {
+      message.reply('No worries, we all make mistakes');
+    }
+  }
+
   isQueueEmpty() {
     return this.queue.length === 0;
   }
 
   searchVideo(message, query) {
-
     request('https://www.googleapis.com/youtube/v3/search?part=id&type=video&q=' + encodeURIComponent(query.toString().replace(',', ' ')) + '&key=' + this.ytApiKey, (err, res, body) => {
       const json = JSON.parse(body);
       if('error' in json) {
@@ -65,10 +107,10 @@ class MusicRequestHandler {
     if(this.stopped) {
       message.reply('I already did, jerk! Also Lorde is a freaking American treasure and you should appreciate her.');
     } else {
+      this.decrementDJScore(message.author.id, this.queue[0].userId, message);
       if(this.voiceHandler !== null) {
         this.voiceHandler.end();
       }
-      message.reply('Fine, geez...Sorry for appreciating the arts');
     }
   }
 
@@ -94,12 +136,22 @@ class MusicRequestHandler {
       this.voiceHandler = voiceConnection.playStream(audioStream);
       this.voiceHandler.once('end', () => {
         this.voiceHandler = null;
+        this.queue.splice(0, 1);
         if(!this.stopped && !this.isQueueEmpty()) {
+          logger.info('!!! Playing next song');
           this.playNextSong();
         }
       });
     });
-    this.queue.splice(0, 1);
+  }
+
+  sendPlaylist(message) {
+    let playlist = '';
+    for(let i = 0; i < this.queue.length; i++) {
+      playlist = playlist + (i + 1) + '.) ' + this.queue[i]['title'] + ' requested by '
+        + this.queue[i]['user'] + '\n';
+    }
+    message.channel.sendMessage(playlist);
   }
 
   getVoiceHandler() {
