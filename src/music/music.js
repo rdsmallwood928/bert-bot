@@ -44,7 +44,6 @@ class MusicRequestHandler {
     };
     const handleConnection = (connection) => {
       this.voiceHandler = connection.playStream(this.audioStream);
-      logger.info('is bot playing? ' + this.isBotPlaying());
       this.voiceHandler.on('start', () => {
         this.voiceHandler.on('end', endHandler);
       });
