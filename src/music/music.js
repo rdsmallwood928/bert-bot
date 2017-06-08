@@ -10,6 +10,7 @@ class MusicRequestHandler {
     this.stopped = false;
     this.voiceHandler = null;
     this.bot = bot;
+    this.endHandlerId = 0;
     //Maybe make this configurable
     this.inform = true;
     this.nowPlayingData = {};
@@ -17,10 +18,38 @@ class MusicRequestHandler {
     this.voiceChannel = voiceChannel;
     this.voiceConnection = null;
     this.ytApiKey = ytApiKey;
+    this.audioStream = null;
     voiceChannel.join().then((connection) => {
       logger.info('Voice connection established');
       this.voiceConnection = connection;
+      this.voiceConnection.player.on('warn', (error) => {
+        logger.warn('Unable to play song ' + error);
+        setTimeout(() => {
+          this.playCurrentStream();
+        }, 1000);
+      });
     }).catch(logger.error);
+    this.playCurrentStream.bind(this);
+  }
+
+  playCurrentStream() {
+    const endHandler = () => {
+      this.voiceHandler.removeListener('end', endHandler);
+      this.voiceHandler = null;
+      if(!this.stopped && !this.isQueueEmpty()) {
+        logger.info('Playing next song after stopping');
+        this.queue.splice(0, 1);
+        this.playNextSong();
+      }
+    };
+    const handleConnection = (connection) => {
+      this.voiceHandler = connection.playStream(this.audioStream);
+      logger.info('is bot playing? ' + this.isBotPlaying());
+      this.voiceHandler.on('start', () => {
+        this.voiceHandler.on('end', endHandler);
+      });
+    };
+    this.getVoiceConnection().then(handleConnection);
   }
 
   addToQueue(videoId, message, mute = false) {
@@ -108,9 +137,7 @@ class MusicRequestHandler {
       message.reply('I already did, jerk! Also Lorde is a freaking American treasure and you should appreciate her.');
     } else {
       this.decrementDJScore(message.author.id, this.queue[0].userId, message);
-      if(this.voiceHandler !== null) {
-        this.voiceHandler.end();
-      }
+      this.voiceConnection.player.destroyCurrentStream();
     }
   }
 
@@ -128,41 +155,35 @@ class MusicRequestHandler {
 
     if(this.inform) {
       this.bot.user.setGame(title);
-      this.textChannel.sendMessage('Now playing: "' + title + '" (requested by ' + user + ')');
+      this.textChannel.send('Now playing: "' + title + '" (requested by ' + user + ')');
     }
 
     const audioStream = ytdl('https://www.youtube.com/watch?v=' + videoId);
-    this.getVoiceHandler().then((voiceConnection) => {
-      this.voiceHandler = voiceConnection.playStream(audioStream);
-      this.voiceHandler.once('end', () => {
-        this.voiceHandler = null;
-        this.queue.splice(0, 1);
-        if(!this.stopped && !this.isQueueEmpty()) {
-          logger.info('!!! Playing next song');
-          this.playNextSong();
-        }
-      });
-    });
+    this.audioStream = audioStream;
+    this.playCurrentStream();
   }
 
   sendPlaylist(message) {
+    if(this.queue.length === 0) {
+      message.channel.send('Nothin\' is queued up');
+    }
     let playlist = '';
     for(let i = 0; i < this.queue.length; i++) {
       playlist = playlist + (i + 1) + '.) ' + this.queue[i]['title'] + ' requested by '
         + this.queue[i]['user'] + '\n';
     }
-    message.channel.sendMessage(playlist);
+    message.channel.send(playlist);
   }
 
-  getVoiceHandler() {
+  getVoiceConnection() {
     if(this.voiceConnection === null) {
-      return setTimeout(this.getVoiceHandler, 1000);
+      return setTimeout(this.getVoiceConnection, 1000);
     }
     return Promise.resolve(this.voiceConnection);
   }
 
   isBotPlaying() {
-    this.voiceHandler !== null;
+    return this.voiceHandler !== null;
   }
 }
 
