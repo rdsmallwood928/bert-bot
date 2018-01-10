@@ -23,12 +23,10 @@ const textChannelName = process.env.TEXT_CHANNEL || commander.textChannel;
 const pizza = process.env.PIZZA || commander.pizza;
 const youtubeApi = process.env.YOUTUBE || commander.youtubeApi;
 
-logger.info('Token: ' + token);
 logger.info('Voice channel: ' + voiceChannelName);
 logger.info('Server name: ' + serverName);
 logger.info('textChannelName: ' + textChannelName);
 logger.info('pizza: ' + pizza);
-logger.info('youtube: ' + youtubeApi);
 
 bertBot.on('ready', () => {
   const server =  bertBot.guilds.find('name', serverName);

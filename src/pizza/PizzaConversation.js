@@ -8,10 +8,12 @@ class PizzaConversation {
     this.pizzaQuestions.push(this.startPizzaOrder.bind(this));
     this.pizzaQuestions.push(this.getLocations.bind(this));
     this.pizzaQuestions.push(this.getSpecials.bind(this));
+    this.pizzaQuestions.push(this.handleOrderItem.bind(this));
     this.printCategory.bind(this);
     this.storeIndex = 0;
     this.store = null;
     this.storeData = null;
+    this.order = new pizza.Order();
     this.haveAskedToConfirmStore = false;
   }
 
@@ -96,6 +98,42 @@ class PizzaConversation {
     } else {
       message.reply(reply);
     }
+  }
+
+  orderConfirmation(message) {
+    if(message.content.toLowerCase().includes('yes')) {
+      message.reply('Ok let me submit that for you');
+    } else {
+      message.reply('Ok, lets start over');
+      this.order = new pizza.Order();
+      this.pizzaQuestions.push(this.handleOrderItem.bind(this));
+    }
+  }
+
+  handleOrderItem(message) {
+    if(message.content.toLowerCase().includes('no more and then')
+      || message.content.toLowerCase().includes('that\'s all')) {
+      message.reply('Ok got your order: \n' + this.printOrder(this.order) + 'Looks good?');
+      this.pizzaQuestions.push(this.orderConfirmation.bind(this));
+    } else {
+      this.order.addItem(new pizza.Item({
+            code: message.content,
+            options: [],
+            quantity: 1
+      }));
+      this.pizzaQuestions.push(this.handleOrderItem.bind(this));
+      message.reply('And then...');
+    }
+  }
+
+  printOrder(order) {
+    const orderItems = order.Products;
+    let orderString = '';
+    for(let item of orderItems) {
+      logger.info(JSON.stringify(item, null, 2));
+      orderString = orderString + item.Qty + ' ' + item.Code + '\n';
+    }
+    return orderString;
   }
 
   getLocations(message) {
