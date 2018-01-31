@@ -1,15 +1,20 @@
 const logger = require('winston');
 const pizza = require('dominos');
+const autoBind = require('auto-bind');
 
 class PizzaConversation {
 
   constructor() {
+    autoBind(this);
+    this.init();
+  }
+
+  init() {
     this.pizzaQuestions = [];
-    this.pizzaQuestions.push(this.startPizzaOrder.bind(this));
-    this.pizzaQuestions.push(this.getLocations.bind(this));
-    this.pizzaQuestions.push(this.getSpecials.bind(this));
-    this.pizzaQuestions.push(this.handleOrderItem.bind(this));
-    this.printCategory.bind(this);
+    this.pizzaQuestions.push(this.startPizzaOrder);
+    this.pizzaQuestions.push(this.getLocations);
+    this.pizzaQuestions.push(this.getSpecials);
+    this.pizzaQuestions.push(this.handleOrderItem);
     this.storeIndex = 0;
     this.store = null;
     this.storeData = null;
@@ -22,8 +27,13 @@ class PizzaConversation {
   }
 
   handleConversation(message) {
-    this.pizzaQuestions[0](message);
-    this.pizzaQuestions.splice(0, 1);
+    if(message.content.toLowerCase().includes('cancel')) {
+      message.reply('You got it boss, cancelling order');
+      this.init();
+    } else {
+      this.pizzaQuestions[0](message);
+      this.pizzaQuestions.splice(0, 1);
+    }
   }
 
   isConversationOver() {
@@ -43,17 +53,17 @@ class PizzaConversation {
       reply = reply + '\n\n' + this.storeData.result.Stores[this.storeIndex].AddressDescription + '\n\n';
       reply = reply + 'Sound good?';
       this.haveAskedToConfirmStore = true;
-      this.pizzaQuestions.unshift(this.confirmStore.bind(this));
+      this.pizzaQuestions.unshift(this.confirmStore);
     } else if(this.storeIndex + 1 < this.storeData.result.Stores.length) {
       this.storeIndex = this.storeIndex + 1;
       reply = 'Damn, could it be this one?';
       reply = reply + '\n\n' + this.storeData.result.Stores[this.storeIndex].AddressDescription + '\n\n';
-      this.pizzaQuestions.unshift(this.confirmStore.bind(this));
+      this.pizzaQuestions.unshift(this.confirmStore);
     } else {
       reply = 'Thats all the stores I could find my hungry amigo.  Can you give me any more address info? (The more address info I have, the more accurate my searches are)';
       this.haveAskedToConfirmStore = false;
       this.storeIndex = 0;
-      this.pizzaQuestions.unshift(this.getLocations.bind(this));
+      this.pizzaQuestions.unshift(this.getLocations);
     }
     message.reply(reply);
   }
@@ -106,7 +116,7 @@ class PizzaConversation {
     } else {
       message.reply('Ok, lets start over');
       this.order = new pizza.Order();
-      this.pizzaQuestions.push(this.handleOrderItem.bind(this));
+      this.pizzaQuestions.push(this.handleOrderItem);
     }
   }
 
@@ -114,14 +124,14 @@ class PizzaConversation {
     if(message.content.toLowerCase().includes('no more and then')
       || message.content.toLowerCase().includes('that\'s all')) {
       message.reply('Ok got your order: \n' + this.printOrder(this.order) + 'Looks good?');
-      this.pizzaQuestions.push(this.orderConfirmation.bind(this));
+      this.pizzaQuestions.push(this.orderConfirmation);
     } else {
       this.order.addItem(new pizza.Item({
             code: message.content,
             options: [],
             quantity: 1
       }));
-      this.pizzaQuestions.push(this.handleOrderItem.bind(this));
+      this.pizzaQuestions.push(this.handleOrderItem);
       message.reply('And then...');
     }
   }
@@ -143,10 +153,9 @@ class PizzaConversation {
         this.confirmStore(message);
       } else {
         message.reply('I couldn\'t find any stores for the info: ' + message.content + '.  Just tell me your zip code instead');
-        this.pizzaQuestions.unshift(this.getLocations.bind(this));
+        this.pizzaQuestions.unshift(this.getLocations);
       }
     };
-    handleStoreData.bind(this);
     pizza.Util.findNearbyStores(
       message.content,
       'Delivery',

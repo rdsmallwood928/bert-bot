@@ -45,7 +45,7 @@ bertBot.on('ready', () => {
   }
 
   const music = new Music(textChannel, voiceChannel, bertBot, youtubeApi);
-	const pizza = new Pizza();
+  let pizza;
 
   bertBot.on('message', (message) => {
     logger.info('Message received: ' + message.content);
@@ -62,6 +62,7 @@ bertBot.on('ready', () => {
       }else if(messageText.includes('where are ')) {
         message.reply('They\'re UNDER THE GROUND!');
       } else if(messageText.includes('pizza')) {
+        pizza = new Pizza();
         pizza.startPizzaOrder(message);
       } else {
         message.reply('I don\'t understand, please speak english ' + message.author.username);
