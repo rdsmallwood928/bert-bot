@@ -3,6 +3,7 @@ const logger = require('winston');
 const commander = require('commander');
 const Music = require('./music/music');
 const Pizza = require('./pizza/PizzaService');
+const FortNight = require('./fortnite/drop');
 const bertBot = new Discord.Client({
     autoreconnect: true,
     max_message_cache: 0
@@ -48,6 +49,7 @@ bertBot.on('ready', () => {
 
   const music = new Music(textChannel, voiceChannel, bertBot, youtubeApi);
 	const pizza = new Pizza();
+  const fortNight = new FortNight();
 
   bertBot.on('message', (message) => {
     logger.info('Message received: ' + message.content);
@@ -69,6 +71,8 @@ bertBot.on('ready', () => {
         music.sendPlaylist(message);
       } else if(messageText.includes('mad props')) {
         music.giveProps(message);
+      } else if(messageText.includes('where should we drop')) {
+        fortNight.getRandomDrop(message);
       } else {
         message.reply('I don\'t understand, please speak english ' + message.author.username);
       }

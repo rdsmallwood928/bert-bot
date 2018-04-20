@@ -95,8 +95,7 @@ class PizzaConversation {
       });
     } else {
       message.reply(reply);
-    }
-  }
+    } }
 
   getLocations(message) {
     const handleStoreData = (storeData) => {
