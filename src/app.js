@@ -1,12 +1,16 @@
+const DynamoDbService = require('./database/DynamoDbService');
 const Discord = require('discord.js');
 const logger = require('winston');
 const commander = require('commander');
 const Music = require('./music/music');
 const Pizza = require('./pizza/PizzaService');
-const FortNight = require('./fortnite/drop');
+const FortNite = require('./fortnite/FortNite');
+const FortNiteStatsConversation = require('./fortnite/FortNiteStatsConversation');
+const FortNiteDropConversation = require('./fortnite/FortNiteDropConversation');
+
 const bertBot = new Discord.Client({
-    autoreconnect: true,
-    max_message_cache: 0
+    'autoreconnect': true,
+    'max_message_cache': 0
 });
 
 commander
@@ -15,6 +19,10 @@ commander
   .option('-s, --server [value]', 'A discord server to connect to')
   .option('-x, --textChannel [value]', 'A discord text channel to chat in')
   .option('-y, --youtubeApi [value]', 'Youtube api key for search')
+  .option('-f, --fortNiteApi [value]', 'FortNite tracker api key')
+  .option('-a, --awsAccessKeyId [value]', 'Aws accessKeyId for dynamodb')
+  .option('-S, --awsSecretAccessKey [value]', 'Aws secret access key for dynamodb')
+  .option('-r, --awsRegion [value]', 'Aws region for dynamodb')
   .parse(process.argv);
 
 const voiceChannelName = process.env.VOICE_CHANNEL || commander.voiceChannel;
@@ -23,6 +31,10 @@ const serverName = process.env.SERVER || commander.server;
 const textChannelName = process.env.TEXT_CHANNEL || commander.textChannel;
 const pizza = process.env.PIZZA || commander.pizza;
 const youtubeApi = process.env.YOUTUBE || commander.youtubeApi;
+const fortNiteApi = process.env.FORTNITE || commander.fortNiteApi;
+const awsAccessKeyId = process.env.AWS_ACCESS_KEY || commander.awsAccessKeyId;
+const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY || commander.awsSecretAccessKey;
+const awsRegion = process.env.AWS_REGION || commander.awsRegion;
 
 logger.info('Token: ' + token);
 logger.info('Voice channel: ' + voiceChannelName);
@@ -30,6 +42,7 @@ logger.info('Server name: ' + serverName);
 logger.info('textChannelName: ' + textChannelName);
 logger.info('pizza: ' + pizza);
 logger.info('youtube: ' + youtubeApi);
+logger.info('fortnite: ' + fortNiteApi);
 
 bertBot.on('ready', () => {
   const server =  bertBot.guilds.find('name', serverName);
@@ -46,12 +59,23 @@ bertBot.on('ready', () => {
   if(textChannel === null) {
     throw 'Couldn\'t find text channel ' + commander.textChannel + ' in server ' + commander.server;
   }
+  DynamoDbService.init(awsAccessKeyId, awsSecretAccessKey, awsRegion);
 
   const music = new Music(textChannel, voiceChannel, bertBot, youtubeApi);
 	const pizza = new Pizza();
-  const fortNight = new FortNight();
+  FortNite.init(fortNiteApi, bertBot);
 
   bertBot.on('message', (message) => {
+    // VALID MESSAGE
+    if(message.type !== 'DEFAULT') {
+      return;
+    }
+
+    // CHECK MESSAGE IS VALID USER
+    if(message.author.bot) {
+      return;
+    }
+
     logger.info('Message received: ' + message.content);
     if(message.isMentioned(bertBot.user)) {
       const messageText = message.content.substr(message.content.indexOf(' ') + 1).toLowerCase();
@@ -71,14 +95,17 @@ bertBot.on('ready', () => {
         music.sendPlaylist(message);
       } else if(messageText.includes('mad props')) {
         music.giveProps(message);
-      } else if(messageText.includes('where should we drop')) {
-        fortNight.getRandomDrop(message);
+      } else if(messageText.includes('where should we drop') || messageText.includes('where we droppin')) {
+        new FortNiteDropConversation(message);
+      } else if(messageText.includes('fortnite stats')) {
+        new FortNiteStatsConversation(message);
       } else {
         message.reply('I don\'t understand, please speak english ' + message.author.username);
       }
     } else {
       logger.info('Handling message: ' + message.content);
       pizza.handleMessage(message);
+      FortNite.handleMessage(message);
     }
   });
   logger.info('Connected!');
