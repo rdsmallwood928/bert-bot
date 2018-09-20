@@ -86,7 +86,7 @@ bertBot.on('ready', () => {
       } else if(messageText.includes('shut up')) {
         music.stop(message);
       } else if(messageText.includes('request')) {
-        music.searchVideo(message, messageText.split(' ').slice(2));
+        music.searchVideo(message, messageText.split(' ').slice(1));
       } else if(messageText.includes('where are ')) {
         message.reply('They\'re UNDER THE GROUND!');
       } else if(messageText.includes('pizza')) {
