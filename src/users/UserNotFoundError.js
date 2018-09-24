@@ -1,7 +1,7 @@
 class UserNotFoundError {
 
   constructor() {
-    this._message = 'PlayerNotFoundError';
+    this._message = 'Player Not Found';
   }
 
   getMessage() {

@@ -157,7 +157,7 @@ class MusicRequestHandler {
     this.nowPlayingData['user'] = user;
 
     if(this.inform) {
-      this.bot.user.setGame(title);
+      this.bot.user.setActivity(title);
       this.textChannel.send('Now playing: "' + title + '" (requested by ' + user + ')');
     }
 

@@ -12,7 +12,6 @@ class FortNite {
     this._apiKey = null;
     this._discordClient = null;
     this._statsUrl = 'https://api.fortnitetracker.com/v1/profile';
-    this._inConversation = {};
     this._userMapping = {};
     this._statTypeMapping = {
       'stats_solo': 'p2',
@@ -51,15 +50,6 @@ class FortNite {
     this._discordClient = discordClient;
   }
 
-  handleMessage(message) {
-    if(this._inConversation[message.author.id]) {
-      this._inConversation[message.author.id].handleConversation(message);
-      if(this._inConversation[message.author.id].isConversationOver()) {
-        delete this._inConversation[message.author.id];
-      }
-    }
-  }
-
   getRandomDrop() {
     return Random.pick(this.engine, this.dropLocations);
   }
@@ -68,7 +58,17 @@ class FortNite {
     //see if the fortnite user name is already known
     return UserService.getUser(userId).then((user) => {
       if(user) {
-        return this._fetchStats(user.getFortniteUserName(), displayAvatarURL, tag);
+        let fortNiteUserName = userName;
+        if(user.getFortniteUserName()) {
+          fortNiteUserName = user.getFortniteUserName();
+        }
+        return this._fetchStats(fortNiteUserName, displayAvatarURL, tag).then((data) => {
+          if(data.error === UserNotFoundError.getMessage()) {
+            return this._fetchStats(userName, displayAvatarURL, tag);
+          } else {
+            return data;
+          }
+        });
       } else {
         return this._fetchStats(userName, displayAvatarURL, tag);
       }
@@ -125,7 +125,7 @@ class FortNite {
           'Wins: **' + reducedStats['squadStats']['top1'] +
           '** - K/D: **' + reducedStats['squadStats']['kd'] +
           '**');
-        discordRichEmbed.setFooter('Requested By: ' + tag);
+        discordRichEmbed.setFooter('Requested By: ' + tag  + '\n Not your FortNite username? @bert-bot with the message: "Please update my FortNite username"');
       }
       return {
         fortniteUsername: reducedStats['userHandle'],

@@ -4,9 +4,11 @@ const logger = require('winston');
 const commander = require('commander');
 const Music = require('./music/music');
 const Pizza = require('./pizza/PizzaService');
+const UserService = require('./users/UserService');
 const FortNite = require('./fortnite/FortNite');
 const FortNiteStatsConversation = require('./fortnite/FortNiteStatsConversation');
 const FortNiteDropConversation = require('./fortnite/FortNiteDropConversation');
+const FortNiteUserNameUpdateConversation = require('./fortnite/FortNiteUserNameUpdateConversation');
 
 const bertBot = new Discord.Client({
     'autoreconnect': true,
@@ -98,14 +100,15 @@ bertBot.on('ready', () => {
       } else if(messageText.includes('where should we drop') || messageText.includes('where we droppin')) {
         new FortNiteDropConversation(message);
       } else if(messageText.includes('fortnite stats')) {
-        new FortNiteStatsConversation(message);
+        UserService.startConversation(new FortNiteStatsConversation(message), message.author.id);
+      } else if(messageText.includes('please update my fortnite username')) {
+        UserService.startConversation(new FortNiteUserNameUpdateConversation(message), message.author.id);
       } else {
         message.reply('I don\'t understand, please speak english ' + message.author.username);
       }
     } else {
       logger.info('Handling message: ' + message.content);
-      pizza.handleMessage(message);
-      FortNite.handleMessage(message);
+      UserService.handleMessage(message);
     }
   });
   logger.info('Connected!');

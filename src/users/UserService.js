@@ -7,28 +7,68 @@ class UserService {
     this.users = {};
   }
 
-  getUser(userId) {
+  getUserByFortnite(userId) {
     if(!this.users.userId) {
-      return DynamoDbService.getFortniteUserName(userId).then((userInfo) => {
-        if(userInfo) {
-          this.users[userInfo.get('user_id')] = new User(
-            userInfo.get('fortnite_username'),
-            userInfo.get('dj_score')
-          );
-          return this.users[userInfo.get('user_id')];
-        } else {
-          return null;
-        }
+      return DynamoDbService.getUser(userId).then((userInfo) => {
+        this._createUser(userInfo);
+        return this.users[userInfo.get('user_id')];
       });
     } else {
       return Promise.resolve(this.users.userId);
     }
   }
 
-  saveUser(discordId, user) {
-    if(!this.users['discordId']) {
-      DynamoDbService.saveUser(discordId, user);
+  getUser(discordId) {
+    if(!this.users[discordId]) {
+      return DynamoDbService.getUser(discordId).then(this._updateUserInfo.bind(this));
+    } else {
+      return Promise.resolve(this.users[discordId]);
     }
+  }
+
+  _updateUserInfo(userModel) {
+    if(!userModel) {
+      return null;
+    }
+    this.users[userModel.get('user_id')] = new User(
+      userModel.get('fortnite_username'),
+      userModel.get('djScore'),
+      userModel.get('user_id')
+    );
+    return this.users[userModel.get('user_id')];
+  }
+
+  saveUser(discordId, user) {
+    if(!this.users[discordId]) {
+      return DynamoDbService.saveUser(discordId, user).then(this._updateUserInfo.bind(this));
+    } else {
+      const mergedUser =  new User(
+        user['fortniteUsername'] || this.users[discordId].getFortniteUserName(),
+        user['djScore'] || this.users[discordId].getDjScore()
+      );
+      return DynamoDbService.saveUser(discordId, mergedUser).then(this._updateUserInfo.bind(this));
+    }
+  }
+
+  handleMessage(message) {
+    this.getUser(message.author.id).then((user) => {
+      user.handleMessage(message);
+    });
+  }
+
+  startConversation(conversation, discordId) {
+    this.getUser(discordId).then((user) => {
+      if(user) {
+        user.startConversation(conversation);
+      } else {
+        DynamoDbService.saveUser(discordId, new User()).then((user) => {
+          this._updateUserInfo(user);
+          this.getUser(discordId).then((user) => {
+            user.startConversation(conversation);
+          });
+        });
+      }
+    });
   }
 }
 

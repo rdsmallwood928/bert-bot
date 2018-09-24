@@ -16,7 +16,8 @@ class DynamoDbService {
         timestamps: true,
         schema: {
           'user_id': Joi.string(),
-          'fortnite_username': Joi.string()
+          'fortnite_username': Joi.string(),
+          'djScore': Joi.number()
         }
     });
 
@@ -33,7 +34,8 @@ class DynamoDbService {
     return new Promise((resolve, reject) => {
       this.UserModel.create({
         'user_id': userId,
-        'fortnite_username': user.getFortniteUserName()
+        'fortnite_username': user.getFortniteUserName(),
+        'djScore': user.getDjScore()
       }, (err, user) => {
         if(err) {
           logger.error('ERROR SAVING USER NAME FOR ' + userId);
@@ -45,9 +47,10 @@ class DynamoDbService {
     });
   }
 
-  getFortniteUserName(userId) {
+
+  getUser(discordId) {
     return new Promise((resolve, reject) => {
-      this.UserModel.get(userId, (err, user) => {
+      this.UserModel.get(discordId, (err, user) => {
         if(err) {
           logger.error('ERROR GETTING INFO FOR USER');
           reject('ERROR GETTING INFO FOR USER');
