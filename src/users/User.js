@@ -1,10 +1,11 @@
 
 class User {
 
-  constructor(fortniteUsername, djScore, discordId) {
+  constructor(fortniteUsername, djScore, discordId, discordUserName) {
     this.fortniteUsername = fortniteUsername;
     this.djScore = djScore;
     this.discordId = discordId;
+    this.discordUserName = discordUserName;
     this._currentConversation;
   }
 
@@ -21,8 +22,20 @@ class User {
     return this.fortniteUsername;
   }
 
+  getDiscordUserName() {
+    return this.discordUserName;
+  }
+
   getDjScore() {
     return this.djScore;
+  }
+
+  getDiscordId() {
+    return this.discordId;
+  }
+
+  setDjScore(djScore) {
+    this.djScore = djScore;
   }
 
   setFortNiteUserName(fortNiteUserName) {
@@ -33,7 +46,8 @@ class User {
     return 'USER: ' +
       'discordId: ' + this.discordId + '\n' +
       'djScore: ' + this.djScore + '\n' +
-      'fortniteUsername: ' + this.fortniteUsername;
+      'fortniteUsername: ' + this.fortniteUsername + '\n' +
+      'discordUserName: ' + this.discordUserName;
   }
 
 }

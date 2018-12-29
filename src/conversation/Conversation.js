@@ -4,13 +4,16 @@ class Conversation {
   constructor(message) {
     this._questions = [];
     this._message = message;
+    this._messageText = message.content.substr(message.content.indexOf(' ') + 1).toLowerCase();
   }
 
   handleConversation(message) {
     if(message) {
       this._message = message;
     }
-    this._questions.shift()(this._message);
+    if(!this.isConversationOver) {
+      this._questions.shift()(this._message);
+    }
   }
 
   isConversationOver() {

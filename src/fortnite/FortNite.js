@@ -134,7 +134,7 @@ class FortNite {
         error: reducedStats['error']
       };
     }).catch((err) => {
-      logger.info(err);
+      logger.error(err);
     });
   }
 

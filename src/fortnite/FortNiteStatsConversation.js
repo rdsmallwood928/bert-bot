@@ -40,7 +40,10 @@ class FortNiteConversation extends Conversation {
         embed: data['discordRichEmbed']
       });
       UserService.saveUser(this._message.author.id, new User(
-        data['fortniteUsername']
+        data['fortniteUsername'],
+        null,
+        this._message.author.id,
+        this._message.author.username
       ));
     } else {
       const error = data.error;

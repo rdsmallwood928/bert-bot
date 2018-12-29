@@ -1,13 +1,14 @@
 const FortNite = require('./FortNite');
+const Conversation = require('../conversation/Conversation');
 
-class FortNiteDropConversation {
+class FortNiteDropConversation extends Conversation {
 
   constructor(message) {
-    this._message =  message;
-    this.handleConversation(message);
+    super(message);
+    this.addQuestion(this.getRandomDrop);
   }
 
-  handleConversation(message) {
+  getRandomDrop(message) {
     message.reply(FortNite.getRandomDrop());
   }
 }

@@ -1,5 +1,7 @@
 const DynamoDbService = require('../database/DynamoDbService');
 const User = require('./User');
+const logger = require('winston');
+const UserNotFoundError = require('./UserNotFoundError');
 
 class UserService {
 
@@ -32,22 +34,11 @@ class UserService {
     }
     this.users[userModel.get('user_id')] = new User(
       userModel.get('fortnite_username'),
-      userModel.get('djScore'),
-      userModel.get('user_id')
+      (userModel.get('djScore') !== null && userModel.get('djScore') !== undefined && !Number.isNaN(userModel.get('djScore'))) ? userModel.get('djScore') : 0,
+      userModel.get('user_id'),
+      userModel.get('discord_username')
     );
     return this.users[userModel.get('user_id')];
-  }
-
-  saveUser(discordId, user) {
-    if(!this.users[discordId]) {
-      return DynamoDbService.saveUser(discordId, user).then(this._updateUserInfo.bind(this));
-    } else {
-      const mergedUser =  new User(
-        user['fortniteUsername'] || this.users[discordId].getFortniteUserName(),
-        user['djScore'] || this.users[discordId].getDjScore()
-      );
-      return DynamoDbService.saveUser(discordId, mergedUser).then(this._updateUserInfo.bind(this));
-    }
   }
 
   handleMessage(message) {
@@ -56,18 +47,46 @@ class UserService {
     });
   }
 
-  startConversation(conversation, discordId) {
+  startConversation(conversation, discordId, discordUserName) {
     this.getUser(discordId).then((user) => {
       if(user) {
         user.startConversation(conversation);
       } else {
-        DynamoDbService.saveUser(discordId, new User()).then((user) => {
-          this._updateUserInfo(user);
-          this.getUser(discordId).then((user) => {
-            user.startConversation(conversation);
-          });
+        const newUser = new User(null, 0, discordId, discordUserName);
+        this.saveUser(newUser).then((user) => {
+          user.startConversation(conversation);
         });
       }
+    });
+  }
+
+  saveUser(user) {
+    return DynamoDbService.saveUser(user.getDiscordId(), user).then((user) => {
+      return this._updateUserInfo(user);
+    });
+  }
+
+  decrementDJScore(discordId) {
+    return this.getUser(discordId).then((user) => {
+      if(user) {
+        const newScore = user.getDjScore() - 1;
+        user.setDjScore(newScore);
+        this.saveUser(user);
+        return newScore;
+      }
+      throw UserNotFoundError;
+    });
+  }
+
+  incrementDjScore(discordId) {
+    return this.getUser(discordId).then((user) => {
+      if(user) {
+        const newScore = user.getDjScore() + 1;
+        user.setDjScore(newScore);
+        this.saveUser(user);
+        return user;
+      }
+      throw UserNotFoundError;
     });
   }
 }
