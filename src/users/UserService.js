@@ -43,7 +43,9 @@ class UserService {
 
   handleMessage(message) {
     this.getUser(message.author.id).then((user) => {
-      user.handleMessage(message);
+      if (user !== null) {
+        user.handleMessage(message);
+      }
     });
   }
 
