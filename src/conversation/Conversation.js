@@ -8,10 +8,10 @@ class Conversation {
   }
 
   handleConversation(message) {
-    if(message) {
+    if (message) {
       this._message = message;
     }
-    if(!this.isConversationOver) {
+    if (!this.isConversationOver()) {
       this._questions.shift()(this._message);
     }
   }
